@@ -11,3 +11,9 @@ export * from './frontend-type-detector.js';
 export * from './contract-matcher.js';
 export * from './schema-parser.js';
 export * from './types.js';
+
+// Django REST Framework support
+export * from './django/index.js';
+
+// ASP.NET Core support
+export * from './aspnet/index.js';

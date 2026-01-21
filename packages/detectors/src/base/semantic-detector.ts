@@ -200,7 +200,7 @@ export abstract class SemanticDetector extends BaseDetector {
   
   /** All languages supported - semantic detection is language agnostic */
   readonly supportedLanguages: Language[] = [
-    'typescript', 'javascript', 'python', 'css', 'scss', 'json', 'yaml', 'markdown'
+    'typescript', 'javascript', 'python', 'csharp', 'css', 'scss', 'json', 'yaml', 'markdown'
   ];
 
   constructor(config: Partial<SemanticDetectorConfig> = {}) {

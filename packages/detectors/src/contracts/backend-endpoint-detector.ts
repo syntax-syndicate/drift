@@ -2,13 +2,15 @@
  * Backend Endpoint Detector
  *
  * Extracts API endpoint definitions from backend code.
- * Supports Python (FastAPI, Flask) and TypeScript (Express).
+ * Supports Python (FastAPI, Flask, Django) and TypeScript (Express).
  */
 
 import type { ContractField, HttpMethod, Language } from 'driftdetect-core';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 import { BaseDetector } from '../base/base-detector.js';
 import type { ExtractedEndpoint, BackendExtractionResult } from './types.js';
+import { DjangoEndpointDetector } from './django/django-endpoint-detector.js';
+import { AspNetEndpointDetector } from './aspnet/aspnet-endpoint-detector.js';
 
 // ============================================================================
 // FastAPI Pattern Matchers
@@ -374,16 +376,68 @@ export class BackendEndpointDetector extends BaseDetector {
   readonly subcategory = 'contracts';
   readonly name = 'Backend Endpoint Detector';
   readonly description = 'Extracts API endpoint definitions from backend code for contract matching';
-  readonly supportedLanguages: Language[] = ['python', 'typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['python', 'typescript', 'javascript', 'csharp'];
   readonly detectionMethod = 'regex' as const;
+
+  private readonly djangoDetector: DjangoEndpointDetector;
+  private readonly aspnetDetector: AspNetEndpointDetector;
+
+  constructor() {
+    super();
+    this.djangoDetector = new DjangoEndpointDetector();
+    this.aspnetDetector = new AspNetEndpointDetector();
+  }
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     const { content, language, file } = context;
     
     let result: BackendExtractionResult;
     
-    if (language === 'python') {
-      result = this.extractPythonEndpoints(content, file);
+    if (language === 'csharp') {
+      // Use ASP.NET detector for C#
+      const aspnetResult = this.aspnetDetector.extractControllerEndpoints(content, file);
+      if (aspnetResult.confidence === 0) {
+        // Try minimal API
+        const minimalResult = this.aspnetDetector.extractMinimalApiEndpoints(content, file);
+        result = {
+          endpoints: minimalResult.endpoints.map(e => ({
+            method: e.method,
+            path: e.path,
+            normalizedPath: e.normalizedPath,
+            file: e.file,
+            line: e.line,
+            responseFields: e.responseFields,
+            requestFields: e.requestFields,
+            framework: e.framework,
+          })),
+          framework: minimalResult.framework,
+          confidence: minimalResult.confidence,
+        };
+      } else {
+        result = {
+          endpoints: aspnetResult.endpoints.map(e => ({
+            method: e.method,
+            path: e.path,
+            normalizedPath: e.normalizedPath,
+            file: e.file,
+            line: e.line,
+            responseFields: e.responseFields,
+            requestFields: e.requestFields,
+            framework: e.framework,
+          })),
+          framework: aspnetResult.framework,
+          confidence: aspnetResult.confidence,
+        };
+      }
+    } else if (language === 'python') {
+      // Detect Python framework
+      const framework = this.detectPythonFramework(content);
+      
+      if (framework === 'django') {
+        result = this.djangoDetector.extractEndpoints(content, file);
+      } else {
+        result = this.extractPythonEndpoints(content, file);
+      }
     } else if (language === 'typescript' || language === 'javascript') {
       result = this.extractExpressEndpoints(content, file);
     } else {
@@ -396,6 +450,28 @@ export class BackendEndpointDetector extends BaseDetector {
         framework: result.framework,
       },
     });
+  }
+
+  /**
+   * Detect which Python framework is being used.
+   */
+  private detectPythonFramework(content: string): 'django' | 'fastapi' | 'flask' | 'unknown' {
+    if (content.includes('from rest_framework') || content.includes('import rest_framework')) {
+      return 'django';
+    }
+    if (content.includes('from django.') || content.includes('import django.')) {
+      // Check for DRF-specific patterns
+      if (content.includes('ViewSet') || content.includes('APIView') || content.includes('@api_view')) {
+        return 'django';
+      }
+    }
+    if (content.includes('from fastapi') || content.includes('import fastapi')) {
+      return 'fastapi';
+    }
+    if (content.includes('from flask') || content.includes('import flask')) {
+      return 'flask';
+    }
+    return 'unknown';
   }
 
   private extractPythonEndpoints(content: string, file: string): BackendExtractionResult {
