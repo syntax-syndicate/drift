@@ -313,3 +313,21 @@ export {
   ConnectionPoolingSemanticDetector,
   createConnectionPoolingSemanticDetector,
 } from './connection-pooling-semantic.js';
+
+// ============================================================================
+// ASP.NET Core Detectors (C#)
+// ============================================================================
+
+export {
+  EfCorePatternsDetector,
+  createEfCorePatternsDetector,
+  type EfCorePatternInfo,
+  type EfCoreAnalysis,
+} from './aspnet/efcore-patterns-detector.js';
+
+export {
+  RepositoryPatternDetector as AspNetRepositoryPatternDetector,
+  createRepositoryPatternDetector as createAspNetRepositoryPatternDetector,
+  type RepositoryPatternInfo as AspNetRepositoryPatternInfo,
+  type RepositoryAnalysis as AspNetRepositoryAnalysis,
+} from './aspnet/repository-pattern-detector.js';

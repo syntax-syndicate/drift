@@ -290,3 +290,21 @@ export {
   ErrorLoggingSemanticDetector,
   createErrorLoggingSemanticDetector,
 } from './error-logging-semantic.js';
+
+// ============================================================================
+// ASP.NET Core Detectors (C#)
+// ============================================================================
+
+export {
+  ExceptionPatternsDetector as AspNetExceptionPatternsDetector,
+  createExceptionPatternsDetector as createAspNetExceptionPatternsDetector,
+  type ExceptionPatternInfo as AspNetExceptionPatternInfo,
+  type ExceptionAnalysis as AspNetExceptionAnalysis,
+} from './aspnet/exception-patterns-detector.js';
+
+export {
+  ResultPatternDetector,
+  createResultPatternDetector,
+  type ResultPatternInfo,
+  type ResultPatternAnalysis,
+} from './aspnet/result-pattern-detector.js';
