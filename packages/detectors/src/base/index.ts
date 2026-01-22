@@ -72,5 +72,15 @@ export {
   type SemanticDetectorConfig,
 } from './semantic-detector.js';
 
+// Export Unified detector class and related types
+export {
+  UnifiedDetector,
+  isUnifiedDetector,
+  type DetectionStrategy,
+  type StrategyResult,
+  type StrategyOptions,
+  type MergeConfig,
+} from './unified-detector.js';
+
 // Export types from types.ts (for backward compatibility)
 export * from './types.js';

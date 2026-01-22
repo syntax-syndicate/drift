@@ -574,22 +574,47 @@ class FileNamingDetector extends UnifiedDetector {
 
 **Goal:** Unify detector variants into single files
 
+**Status:** 🔄 IN PROGRESS (10% complete)
+
 **Tasks:**
-1. Create UnifiedDetector base class
-2. Create migration script to combine detector variants
-3. Migrate detectors category by category:
-   - structural (8 detectors)
+1. Create UnifiedDetector base class ✅
+2. Export UnifiedDetector from base index ✅
+3. Create first unified detector (file-naming) ✅
+4. Add tests for unified detector ✅
+5. Migrate detectors category by category:
+   - structural (8 detectors) - 1/8 complete (file-naming)
    - security (8 detectors)
    - api (6 detectors)
    - ... etc
-4. Update detector registry
-5. Remove old detector files
+6. Update detector registry
+7. Remove old detector files
 
 **Deliverables:**
-- UnifiedDetector base class
-- Migrated detectors (~130 unified detectors)
-- Updated registry
-- Removed ~270 duplicate files
+- UnifiedDetector base class ✅
+- FileNamingUnifiedDetector (first example) ✅
+- 33 new tests for unified detector ✅
+- Migrated detectors (~130 unified detectors) - in progress
+- Updated registry - pending
+- Removed ~270 duplicate files - pending
+
+**Implementation Notes (January 2026):**
+- Created `UnifiedDetector` abstract base class in `packages/detectors/src/base/unified-detector.ts`
+- Supports multiple detection strategies: 'structural', 'ast', 'regex', 'semantic', 'learning'
+- Includes result merging logic for combining patterns/violations from multiple strategies
+- Configurable merge behavior: duplicate handling, confidence combination
+- Created `FileNamingUnifiedDetector` as first example consolidating:
+  - `file-naming.ts` (structural detection)
+  - `file-naming-learning.ts` (learning detection)
+  - `file-naming-semantic.ts` (semantic detection)
+- Unified detector reduces 3 files (~530 lines) to 1 file (~550 lines) with shared utilities
+- All 3826 tests passing
+
+**Next Steps:**
+- Migrate remaining structural detectors (directory-structure, co-location, barrel-exports, etc.)
+- Migrate security detectors
+- Migrate API detectors
+- Update detector registry to prefer unified detectors
+- Deprecate and remove old variant files
 
 **Risk:** High - large code changes, but well-tested
 

@@ -15,6 +15,21 @@
 
 export * from './file-naming.js';
 
+// ============================================================================
+// Unified Detectors (Phase 4 - Consolidated)
+// ============================================================================
+
+export {
+  FileNamingUnifiedDetector,
+  createFileNamingUnifiedDetector,
+  // Re-export types
+  type NamingConvention as UnifiedNamingConvention,
+  type SuffixPattern,
+  type NamingPattern,
+  type FileNamingAnalysis,
+  type LearnedConventions,
+} from './file-naming-unified.js';
+
 // Re-export directory-structure with explicit names to avoid conflicts
 export {
   isLayerDirectory,
