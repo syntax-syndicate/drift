@@ -1,7 +1,7 @@
 {
   "name": "driftdetect-detectors",
-  "version": "0.3.0",
-  "description": "Pattern detectors for Drift - 101 detectors across 15 categories",
+  "version": "0.4.2",
+  "description": "Pattern detectors for Drift - 150+ detectors across 15 categories",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -38,7 +38,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "driftdetect-core": "^0.3.0"
+    "driftdetect-core": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
