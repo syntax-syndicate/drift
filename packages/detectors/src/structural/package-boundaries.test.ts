@@ -418,7 +418,7 @@ describe('calculateViolationSeverity', () => {
 // ============================================================================
 
 describe('analyzePackageBoundaries', () => {
-  it('should detect internal import violations', () => {
+  it('should detect internal import violations when package names match', () => {
     const projectFiles = [
       'packages/core/src/index.ts',
       'packages/core/src/internal/utils.ts',
@@ -427,8 +427,10 @@ describe('analyzePackageBoundaries', () => {
       'packages/cli/package.json',
     ];
 
+    // Use the package name format that detectMonorepoPackages generates
+    // The function derives names from directory structure: @monorepo/core
     const imports = [
-      { source: 'driftdetect-core/src/internal/utils', line: 1 },
+      { source: '@monorepo/core/src/internal/utils', line: 1 },
     ];
 
     const result = analyzePackageBoundaries(
@@ -450,8 +452,9 @@ describe('analyzePackageBoundaries', () => {
       'packages/cli/package.json',
     ];
 
+    // Use the package name format that detectMonorepoPackages generates
     const imports = [
-      { source: 'driftdetect-core/src/utils', line: 1 },
+      { source: '@monorepo/core/src/utils', line: 1 },
     ];
 
     const result = analyzePackageBoundaries(
@@ -475,8 +478,9 @@ describe('analyzePackageBoundaries', () => {
       'packages/cli/package.json',
     ];
 
+    // Use the package name format that detectMonorepoPackages generates
     const imports = [
-      { source: 'driftdetect-core', line: 1 },
+      { source: '@monorepo/core', line: 1 },
     ];
 
     const result = analyzePackageBoundaries(
@@ -622,8 +626,9 @@ describe('PackageBoundariesDetector', () => {
         'packages/cli/package.json',
       ];
 
+      // Use the package name format that detectMonorepoPackages generates
       const content = `
-import { internalUtil } from 'driftdetect-core/src/internal/utils';
+import { internalUtil } from '@monorepo/core/src/internal/utils';
 
 export function main() {
   internalUtil();
@@ -634,7 +639,7 @@ export function main() {
         'packages/cli/src/index.ts',
         content,
         projectFiles,
-        [{ source: 'driftdetect-core/src/internal/utils', line: 2 }]
+        [{ source: '@monorepo/core/src/internal/utils', line: 2 }]
       );
 
       const result = await detector.detect(context);
@@ -651,8 +656,9 @@ export function main() {
         'packages/cli/package.json',
       ];
 
+      // Use the package name format that detectMonorepoPackages generates
       const content = `
-import { util } from 'driftdetect-core';
+import { util } from '@monorepo/core';
 
 export function main() {
   util();
@@ -663,7 +669,7 @@ export function main() {
         'packages/cli/src/index.ts',
         content,
         projectFiles,
-        [{ source: 'driftdetect-core', line: 2 }]
+        [{ source: '@monorepo/core', line: 2 }]
       );
 
       const result = await detector.detect(context);
@@ -732,9 +738,10 @@ export function main() {
         'packages/cli/package.json',
       ];
 
+      // Use the package name format that detectMonorepoPackages generates
       const content = `
-import { util } from 'driftdetect-core/src/internal';
-import type { Type } from 'driftdetect-core';
+import { util } from '@monorepo/core/src/internal';
+import type { Type } from '@monorepo/core';
 
 export function main() {
   util();

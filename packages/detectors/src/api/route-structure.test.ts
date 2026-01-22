@@ -424,7 +424,8 @@ describe('Violation Detection', () => {
   });
 
   describe('detectDeepNestingViolations', () => {
-    it('should flag routes with more than 3 levels of nesting', () => {
+    it('should flag routes with more than 4 levels of nesting', () => {
+      // MAX_NESTING_DEPTH is 4, so we need 5 levels to trigger a violation
       const patterns: RoutePatternInfo[] = [
         { 
           type: 'express-route', 
@@ -432,7 +433,7 @@ describe('Violation Detection', () => {
           line: 1, 
           column: 1, 
           matchedText: '', 
-          routePath: '/users/:id/posts/:postId/comments/:commentId/replies' 
+          routePath: '/users/:id/posts/:postId/comments/:commentId/replies/:replyId/reactions' 
         },
       ];
       
@@ -442,9 +443,9 @@ describe('Violation Detection', () => {
       expect(violations[0]?.type).toBe('deeply-nested');
     });
 
-    it('should not flag routes with 3 or fewer levels', () => {
+    it('should not flag routes with 4 or fewer levels', () => {
       const patterns: RoutePatternInfo[] = [
-        { type: 'express-route', file: 'routes.ts', line: 1, column: 1, matchedText: '', routePath: '/users/:id/posts/:postId/comments' },
+        { type: 'express-route', file: 'routes.ts', line: 1, column: 1, matchedText: '', routePath: '/users/:id/posts/:postId/comments/:commentId/replies' },
       ];
       
       const violations = detectDeepNestingViolations(patterns, 'routes.ts');

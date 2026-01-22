@@ -1020,11 +1020,11 @@ export function analyzeTailwindPatterns(content: string, file: string): Tailwind
   // Disabled: arbitraryViolations - arbitrary values are intentional
   // Disabled: mixedViolations - mixing is fine
   // Disabled: conflictingViolations - too many false positives
-  const breakpointViolations = detectInconsistentBreakpointOrder(content, file);
+  // Disabled: breakpointViolations - drift learns patterns, doesn't enforce ordering rules
+  // const breakpointViolations = detectInconsistentBreakpointOrder(content, file);
 
-  const allViolations = [
-    // Only keep breakpoint ordering violations - these are genuinely confusing
-    ...breakpointViolations,
+  const allViolations: TailwindViolationInfo[] = [
+    // All violations disabled - drift is a pattern-learning tool, not a linter
   ];
 
   // Calculate confidence

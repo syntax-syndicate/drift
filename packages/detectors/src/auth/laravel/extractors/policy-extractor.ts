@@ -12,6 +12,7 @@ import type {
   PolicyParameter,
   PolicyRegistration,
   AuthorizeCall,
+  CanMiddleware,
   PolicyExtractionResult,
 } from '../types.js';
 import { isStandardPolicyAction } from '../types.js';
@@ -61,6 +62,11 @@ const AUTHORIZE_HELPER_PATTERN = /(?<!\$this->)authorize\s*\(\s*['"]([^'"]+)['"]
  */
 const HANDLES_AUTH_PATTERN = /use\s+(?:Illuminate\\Auth\\Access\\)?HandlesAuthorization\s*;/;
 
+/**
+ * ->can() middleware on routes
+ */
+const CAN_MIDDLEWARE_PATTERN = /->can\s*\(\s*['"]([^'"]+)['"](?:\s*,\s*['"]?([^'")]+)['"]?)?\s*\)/g;
+
 // ============================================================================
 // Policy Extractor
 // ============================================================================
@@ -76,6 +82,7 @@ export class PolicyExtractor {
     const policies = this.extractPolicies(content, file);
     const registrations = this.extractRegistrations(content, file);
     const authorizeCalls = this.extractAuthorizeCalls(content, file);
+    const canMiddleware = this.extractCanMiddleware(content, file);
 
     const confidence = this.calculateConfidence(policies, registrations, authorizeCalls);
 
@@ -83,6 +90,7 @@ export class PolicyExtractor {
       policies,
       registrations,
       authorizeCalls,
+      canMiddleware,
       confidence,
     };
   }
@@ -242,6 +250,26 @@ export class PolicyExtractor {
     }
 
     return calls;
+  }
+
+  /**
+   * Extract ->can() middleware usages
+   */
+  private extractCanMiddleware(content: string, file: string): CanMiddleware[] {
+    const canMiddleware: CanMiddleware[] = [];
+
+    CAN_MIDDLEWARE_PATTERN.lastIndex = 0;
+    let match;
+    while ((match = CAN_MIDDLEWARE_PATTERN.exec(content)) !== null) {
+      canMiddleware.push({
+        ability: match[1] || '',
+        model: match[2] || null,
+        file,
+        line: this.getLineNumber(content, match.index),
+      });
+    }
+
+    return canMiddleware;
   }
 
   /**

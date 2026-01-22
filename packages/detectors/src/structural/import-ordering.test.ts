@@ -51,8 +51,16 @@ describe('getImportType', () => {
     expect(getImportType('@/components/Button')).toBe('internal');
     expect(getImportType('~/utils/helpers')).toBe('internal');
     expect(getImportType('@app/services')).toBe('internal');
-    expect(getImportType('driftdetect-core')).toBe('internal');
+    // 'driftdetect-core' is an external package, not an internal alias
+    // Internal aliases must match patterns like @/, ~/, @app/, or #
     expect(getImportType('#utils')).toBe('internal');
+  });
+
+  it('should identify external packages (not internal aliases)', () => {
+    // Package names without alias patterns are external
+    expect(getImportType('driftdetect-core')).toBe('external');
+    expect(getImportType('lodash')).toBe('external');
+    expect(getImportType('@types/node')).toBe('external');
   });
 
   it('should identify parent imports', () => {

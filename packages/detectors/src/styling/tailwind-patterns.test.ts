@@ -545,10 +545,13 @@ describe('analyzeTailwindPatterns', () => {
     expect(analysis.patterns.some(p => p.type === 'apply-directive')).toBe(true);
   });
 
-  it('should detect violations', () => {
+  // NOTE: TailwindPatternsDetector focuses on PATTERN detection, not violation enforcement.
+  // Violations are intentionally not generated - drift learns patterns, not enforces rules.
+  it('should not detect violations (pattern learning mode)', () => {
     const content = `<div className="flex grid p-[13px]">Content</div>`;
     const analysis = analyzeTailwindPatterns(content, 'test.tsx');
-    expect(analysis.violations.length).toBeGreaterThan(0);
+    // Violations are intentionally not generated
+    expect(analysis.violations).toHaveLength(0);
   });
 
   it('should return empty analysis for excluded files', () => {
@@ -569,10 +572,11 @@ describe('analyzeTailwindPatterns', () => {
     const consistentAnalysis = analyzeTailwindPatterns(consistentContent, 'test.tsx');
     expect(consistentAnalysis.tailwindConsistencyConfidence).toBeGreaterThan(0.5);
 
-    // File with violations
+    // File with potential conflicts - but violations are disabled, so confidence stays at 1.0
     const inconsistentContent = `<div className="flex grid hidden block">Content</div>`;
     const inconsistentAnalysis = analyzeTailwindPatterns(inconsistentContent, 'test.tsx');
-    expect(inconsistentAnalysis.tailwindConsistencyConfidence).toBeLessThan(1.0);
+    // With violations disabled, confidence is based only on patterns found
+    expect(inconsistentAnalysis.tailwindConsistencyConfidence).toBe(1.0);
   });
 });
 
@@ -675,24 +679,27 @@ describe('TailwindPatternsDetector', () => {
       expect(result.patterns.some(p => p.patternId.includes('apply-directive'))).toBe(true);
     });
 
-    it('should create violations for conflicting classes', async () => {
+    // NOTE: TailwindPatternsDetector focuses on PATTERN detection, not violation enforcement.
+    it('should not create violations for conflicting classes (pattern learning mode)', async () => {
       const detector = createTailwindPatternsDetector();
       const context = createMockContext(`
         <div className="flex grid">Content</div>
       `);
 
       const result = await detector.detect(context);
-      expect(result.violations.some(v => v.message.includes('Conflicting'))).toBe(true);
+      // Violations are intentionally not generated - drift learns patterns
+      expect(result.violations).toHaveLength(0);
     });
 
-    it('should create violations for inconsistent breakpoint order', async () => {
+    it('should not create violations for inconsistent breakpoint order (pattern learning mode)', async () => {
       const detector = createTailwindPatternsDetector();
       const context = createMockContext(`
         <div className="lg:flex sm:flex md:flex">Content</div>
       `);
 
       const result = await detector.detect(context);
-      expect(result.violations.some(v => v.message.includes('breakpoint'))).toBe(true);
+      // Violations are intentionally not generated - drift learns patterns
+      expect(result.violations).toHaveLength(0);
     });
 
     it('should return empty result for excluded files', async () => {

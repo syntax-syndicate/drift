@@ -19,6 +19,8 @@
 
 import { Router, type Request, type Response, type NextFunction } from 'express';
 import { DriftDataReader, type PatternQuery, type ViolationQuery, type DriftConfig } from './drift-data-reader.js';
+import { createGalaxyDataTransformer } from './galaxy-data-transformer.js';
+import { getProjectRegistry } from 'driftdetect-core';
 
 // ============================================================================
 // Types
@@ -543,6 +545,130 @@ export function createApiRoutes(reader: DriftDataReader): Router {
       const limit = parseInt(req.query['limit'] as string, 10) || 30;
       const snapshots = await reader.getSnapshots(limit);
       res.json(snapshots);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // ==========================================================================
+  // Galaxy Routes (3D Database Visualization)
+  // ==========================================================================
+
+  /**
+   * GET /api/galaxy - Get Galaxy visualization data
+   * 
+   * Transforms boundary scanner and call graph data into the format
+   * required by the 3D Galaxy visualization.
+   */
+  router.get('/galaxy', async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const transformer = createGalaxyDataTransformer(reader.directory);
+      const galaxyData = await transformer.transform();
+      res.json(galaxyData);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // ==========================================================================
+  // Project Routes (Multi-project management)
+  // ==========================================================================
+
+  /**
+   * GET /api/projects - List all registered projects
+   */
+  router.get('/projects', async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const registry = await getProjectRegistry();
+      const projects = registry.getValid();
+      const activeProject = registry.getActive();
+
+      // Sort by last accessed
+      projects.sort(
+        (a: typeof projects[0], b: typeof projects[0]) =>
+          new Date(b.lastAccessedAt).getTime() -
+          new Date(a.lastAccessedAt).getTime()
+      );
+
+      res.json({
+        totalProjects: registry.count,
+        activeProject: activeProject?.name ?? null,
+        projects: projects.map((p: typeof projects[0]) => ({
+          id: p.id,
+          name: p.name,
+          path: p.path,
+          language: p.language,
+          framework: p.framework,
+          health: p.health,
+          healthScore: p.healthScore,
+          lastAccessedAt: p.lastAccessedAt,
+          isActive: p.id === activeProject?.id,
+          isValid: p.isValid !== false,
+        })),
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  /**
+   * POST /api/projects/switch - Switch active project
+   */
+  router.post('/projects/switch', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { projectId } = req.body as { projectId: string };
+
+      if (!projectId) {
+        throw new BadRequestError('Project ID is required');
+      }
+
+      const registry = await getProjectRegistry();
+      const project = registry.get(projectId);
+
+      if (!project) {
+        throw new NotFoundError(`Project not found: ${projectId}`);
+      }
+
+      await registry.setActive(projectId);
+
+      res.json({
+        success: true,
+        message: `Switched to ${project.name}`,
+        project: {
+          id: project.id,
+          name: project.name,
+          path: project.path,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  /**
+   * GET /api/projects/:id - Get project details
+   */
+  router.get('/projects/:id', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        throw new BadRequestError('Project ID is required');
+      }
+
+      const registry = await getProjectRegistry();
+      const project = registry.get(id);
+
+      if (!project) {
+        throw new NotFoundError(`Project not found: ${id}`);
+      }
+
+      const activeProject = registry.getActive();
+
+      res.json({
+        ...project,
+        isActive: project.id === activeProject?.id,
+      });
     } catch (error) {
       next(error);
     }

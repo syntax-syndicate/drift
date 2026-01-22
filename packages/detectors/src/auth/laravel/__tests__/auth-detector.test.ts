@@ -24,8 +24,9 @@ describe('LaravelAuthDetector', () => {
         language: 'php',
       });
 
-      expect(result.custom?.laravelAuth).toBeDefined();
-      expect(result.custom?.laravelAuth.gates.definitions).toHaveLength(1);
+      const laravelAuth = result.metadata?.custom?.laravelAuth as { gates: { definitions: unknown[] } } | undefined;
+      expect(laravelAuth).toBeDefined();
+      expect(laravelAuth?.gates.definitions).toHaveLength(1);
     });
 
     it('should detect Policy classes', async () => {
@@ -47,7 +48,8 @@ describe('LaravelAuthDetector', () => {
         language: 'php',
       });
 
-      expect(result.custom?.laravelAuth.policies.policies).toHaveLength(1);
+      const laravelAuth = result.metadata?.custom?.laravelAuth as { policies: { policies: unknown[] } } | undefined;
+      expect(laravelAuth?.policies.policies).toHaveLength(1);
     });
 
     it('should detect middleware', async () => {
@@ -72,7 +74,8 @@ describe('LaravelAuthDetector', () => {
         language: 'php',
       });
 
-      expect(result.custom?.laravelAuth.middleware.middlewares).toHaveLength(1);
+      const laravelAuth = result.metadata?.custom?.laravelAuth as { middleware: { middlewares: unknown[] } } | undefined;
+      expect(laravelAuth?.middleware.middlewares).toHaveLength(1);
     });
 
     it('should return empty for non-auth code', async () => {

@@ -1,38 +1,40 @@
 /**
  * VS Code-specific type definitions
+ * 
+ * Re-exports and extensions of VS Code types.
  */
 
-export interface ExtensionConfig {
-  /** Enable/disable extension */
-  enabled: boolean;
-  /** Show status bar */
-  showStatusBar: boolean;
-  /** Auto-start LSP server */
-  autoStart: boolean;
+import type * as vscode from 'vscode';
+
+/**
+ * Extended quick pick item with additional data
+ */
+export interface ExtendedQuickPickItem<T = unknown> extends vscode.QuickPickItem {
+  data?: T;
 }
 
-export interface PatternTreeItem {
-  /** Pattern ID */
-  id: string;
-  /** Pattern name */
-  name: string;
-  /** Pattern category */
-  category: string;
-  /** Confidence level */
-  confidence: string;
-  /** Number of violations */
-  violationCount: number;
+/**
+ * Tree item with generic data
+ */
+export interface DataTreeItem<T = unknown> extends vscode.TreeItem {
+  data?: T;
 }
 
-export interface ViolationTreeItem {
-  /** Violation ID */
-  id: string;
-  /** File path */
-  file: string;
-  /** Line number */
-  line: number;
-  /** Message */
-  message: string;
-  /** Severity */
-  severity: 'error' | 'warning' | 'info' | 'hint';
+/**
+ * Webview message types
+ */
+export interface WebviewMessage<T = unknown> {
+  type: string;
+  requestId?: string;
+  data?: T;
+}
+
+/**
+ * Webview response types
+ */
+export interface WebviewResponse<T = unknown> {
+  type: string;
+  requestId: string;
+  data?: T;
+  error?: string;
 }

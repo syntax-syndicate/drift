@@ -139,7 +139,10 @@ export class LaravelAuthDetector extends BaseDetector {
       content.includes('Gate::') ||
       content.includes('Policy') ||
       content.includes('$routeMiddleware') ||
-      content.includes('->authorize(')
+      content.includes('->authorize(') ||
+      content.includes('Middleware') ||
+      // Check for middleware handle method pattern
+      (content.includes('function handle') && content.includes('$request'))
     );
   }
 

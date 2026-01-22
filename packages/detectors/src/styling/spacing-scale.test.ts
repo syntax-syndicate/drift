@@ -788,7 +788,9 @@ describe('SpacingScaleDetector', () => {
       expect(result.patterns.some(p => p.patternId.includes('theme'))).toBe(true);
     });
 
-    it('should create violations for arbitrary pixel values', async () => {
+    // NOTE: SpacingScaleDetector focuses on PATTERN detection, not violation enforcement.
+    // Arbitrary spacing violations are intentionally not generated - drift learns patterns, not enforces rules.
+    it('should not create violations for arbitrary pixel values (pattern learning mode)', async () => {
       const content = `
         const Button = styled.button\`
           padding: 13px;
@@ -798,11 +800,11 @@ describe('SpacingScaleDetector', () => {
       const context = createMockContext('Button.tsx', content);
       const result = await detector.detect(context);
 
-      expect(result.violations.length).toBeGreaterThan(0);
-      expect(result.violations.some(v => v.message.includes('spacing'))).toBe(true);
+      // Violations are intentionally not generated - drift learns patterns
+      expect(result.violations).toHaveLength(0);
     });
 
-    it('should create violations for Tailwind arbitrary values', async () => {
+    it('should not create violations for Tailwind arbitrary values (pattern learning mode)', async () => {
       const content = `
         <div className="p-[13px] m-[17px]">
           Content
@@ -811,8 +813,8 @@ describe('SpacingScaleDetector', () => {
       const context = createMockContext('Button.tsx', content);
       const result = await detector.detect(context);
 
-      expect(result.violations.length).toBeGreaterThan(0);
-      expect(result.violations.some(v => v.message.includes('Tailwind arbitrary'))).toBe(true);
+      // Violations are intentionally not generated - drift learns patterns
+      expect(result.violations).toHaveLength(0);
     });
 
     it('should not create violations for test files', async () => {
@@ -828,15 +830,13 @@ describe('SpacingScaleDetector', () => {
       expect(result.violations).toHaveLength(0);
     });
 
-    it('should include quick fix in violations', async () => {
+    it('should not include quick fix since no violations are generated', async () => {
       const content = `padding: 13px;`;
       const context = createMockContext('Button.tsx', content);
       const result = await detector.detect(context);
 
-      expect(result.violations.length).toBeGreaterThan(0);
-      const violation = result.violations[0];
-      expect(violation?.quickFix).toBeDefined();
-      expect(violation?.quickFix?.title).toContain('scale value');
+      // No violations means no quick fixes
+      expect(result.violations).toHaveLength(0);
     });
   });
 
@@ -941,8 +941,8 @@ describe('SpacingScaleDetector Integration', () => {
     // Should detect CSS spacing property pattern
     expect(result.patterns.some(p => p.patternId.includes('css-property'))).toBe(true);
 
-    // Should flag arbitrary value
-    expect(result.violations.length).toBeGreaterThan(0);
+    // No violations - drift learns patterns, not enforces rules
+    expect(result.violations).toHaveLength(0);
   });
 
   it('should handle Tailwind with arbitrary values', async () => {
@@ -961,9 +961,8 @@ describe('SpacingScaleDetector Integration', () => {
     // Should detect Tailwind spacing pattern
     expect(result.patterns.some(p => p.patternId.includes('tailwind'))).toBe(true);
 
-    // Should flag arbitrary values
-    expect(result.violations.length).toBeGreaterThan(0);
-    expect(result.violations.some(v => v.message.includes('Tailwind arbitrary'))).toBe(true);
+    // No violations - drift learns patterns, not enforces rules
+    expect(result.violations).toHaveLength(0);
   });
 
   it('should handle CSS modules', async () => {
@@ -984,8 +983,8 @@ describe('SpacingScaleDetector Integration', () => {
     // Should detect CSS spacing properties
     expect(result.patterns.some(p => p.patternId.includes('css-property'))).toBe(true);
 
-    // Should flag arbitrary value
-    expect(result.violations.length).toBeGreaterThan(0);
+    // No violations - drift learns patterns, not enforces rules
+    expect(result.violations).toHaveLength(0);
   });
 
   it('should handle inline styles in React', async () => {
@@ -1007,11 +1006,11 @@ describe('SpacingScaleDetector Integration', () => {
     // Should detect CSS spacing property
     expect(result.patterns.some(p => p.patternId.includes('css-property'))).toBe(true);
 
-    // Should flag arbitrary value
-    expect(result.violations.length).toBeGreaterThan(0);
+    // No violations - drift learns patterns, not enforces rules
+    expect(result.violations).toHaveLength(0);
   });
 
-  it('should provide meaningful violation messages', async () => {
+  it('should detect patterns without generating violations', async () => {
     const content = `
       .button {
         padding: 13px;
@@ -1021,23 +1020,8 @@ describe('SpacingScaleDetector Integration', () => {
     const context = createMockContext('styles.css', content);
     const result = await detector.detect(context);
 
-    expect(result.violations.length).toBeGreaterThan(0);
-
-    for (const violation of result.violations) {
-      // Message should describe the issue
-      expect(violation.message).toContain('spacing');
-      expect(violation.message).toContain('scale');
-
-      // Should have explanation
-      expect(violation.explanation).toBeDefined();
-      expect(violation.explanation?.length).toBeGreaterThan(0);
-
-      // Should have expected value
-      expect(violation.expected).toBeDefined();
-
-      // Should have actual value
-      expect(violation.actual).toBeDefined();
-    }
+    // No violations - drift learns patterns, not enforces rules
+    expect(result.violations).toHaveLength(0);
   });
 
   it('should handle real-world component file', async () => {

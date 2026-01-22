@@ -1,6 +1,7 @@
 /**
  * Webview module exports
+ * 
+ * Webview panels for rich UI experiences.
  */
 
-// TODO: Export webview components when implemented
-export {};
+export { WebviewManager, createWebviewManager } from './webview-manager.js';

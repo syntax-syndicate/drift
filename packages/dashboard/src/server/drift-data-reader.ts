@@ -4,6 +4,9 @@
  * Reads and parses data from the .drift/ folder structure.
  * Provides methods for accessing patterns, violations, files, and configuration.
  *
+ * OPTIMIZED: Uses DataLake for fast reads with pre-computed views.
+ * Falls back to direct file reading when lake data is unavailable.
+ *
  * @requirements 1.6 - THE Dashboard_Server SHALL read pattern and violation data from the existing `.drift/` folder structure
  * @requirements 8.1 - THE Dashboard_Server SHALL expose GET `/api/patterns` to list all patterns
  * @requirements 8.2 - THE Dashboard_Server SHALL expose GET `/api/patterns/:id` to get pattern details with locations
@@ -24,6 +27,7 @@ import type {
   StoredPattern,
   Severity,
 } from 'driftdetect-core';
+import { createDataLake, type DataLake, type StatusView, type TrendsView } from 'driftdetect-core';
 
 // ============================================================================
 // Types
@@ -411,10 +415,17 @@ function generateViolationId(patternId: string, outlier: OutlierLocation): strin
 export class DriftDataReader {
   private readonly driftDir: string;
   private readonly patternsDir: string;
+  private readonly dataLake: DataLake;
+  private lakeInitialized = false;
 
   constructor(driftDir: string) {
     this.driftDir = driftDir;
     this.patternsDir = path.join(driftDir, PATTERNS_DIR);
+    
+    // Initialize DataLake for optimized reads
+    // rootDir is the parent of .drift/
+    const rootDir = path.dirname(driftDir);
+    this.dataLake = createDataLake({ rootDir });
   }
 
   /**
@@ -425,14 +436,41 @@ export class DriftDataReader {
   }
 
   /**
+   * Initialize the data lake (lazy initialization)
+   */
+  private async initializeLake(): Promise<boolean> {
+    if (this.lakeInitialized) return true;
+    try {
+      await this.dataLake.initialize();
+      this.lakeInitialized = true;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
    * Get all patterns, optionally filtered
+   * OPTIMIZED: Uses DataLake pattern shards for fast category-based queries
    *
    * @requirements 8.1 - List all patterns
    */
   async getPatterns(query?: PatternQuery): Promise<DashboardPattern[]> {
+    // OPTIMIZATION: Try DataLake first for fast reads
+    if (await this.initializeLake()) {
+      try {
+        const lakePatterns = await this.getPatternsFromLake(query);
+        if (lakePatterns && lakePatterns.length > 0) {
+          return lakePatterns;
+        }
+      } catch {
+        // Fall through to direct file reading
+      }
+    }
+
+    // Fallback: Read patterns from all status directories
     const patterns: DashboardPattern[] = [];
 
-    // Read patterns from all status directories
     for (const status of STATUS_DIRS) {
       const statusDir = path.join(this.patternsDir, status);
       
@@ -469,6 +507,60 @@ export class DriftDataReader {
 
     // Apply filters if provided
     return this.filterPatterns(patterns, query);
+  }
+
+  /**
+   * Get patterns from DataLake (optimized path)
+   */
+  private async getPatternsFromLake(query?: PatternQuery): Promise<DashboardPattern[] | null> {
+    try {
+      // Build query options for DataLake
+      const queryOptions: Parameters<typeof this.dataLake.query.getPatterns>[0] = {
+        limit: 1000, // Get all patterns
+      };
+      
+      if (query?.category) {
+        queryOptions.categories = [query.category as PatternCategory];
+      }
+      if (query?.status && query.status !== 'all') {
+        queryOptions.status = query.status as 'discovered' | 'approved' | 'ignored';
+      }
+      if (query?.minConfidence !== undefined) {
+        queryOptions.minConfidence = query.minConfidence;
+      }
+      if (query?.search) {
+        queryOptions.search = query.search;
+      }
+
+      const result = await this.dataLake.query.getPatterns(queryOptions);
+      
+      if (result.items.length === 0 && result.total === 0) {
+        return null; // No data in lake, fall back to files
+      }
+
+      // Convert lake PatternSummary to DashboardPattern
+      return result.items.map(p => ({
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        subcategory: p.subcategory,
+        status: p.status as PatternStatus,
+        description: '', // PatternSummary doesn't include description
+        confidence: {
+          score: p.confidence,
+          level: p.confidenceLevel,
+        },
+        locationCount: p.locationCount,
+        outlierCount: p.outlierCount,
+        severity: p.severity || (p.outlierCount > 0 ? 'warning' : 'info'),
+        metadata: {
+          firstSeen: new Date().toISOString(),
+          lastSeen: new Date().toISOString(),
+        },
+      }));
+    } catch {
+      return null;
+    }
   }
 
   /**
@@ -566,9 +658,23 @@ export class DriftDataReader {
 
   /**
    * Get dashboard statistics
+   * OPTIMIZED: Uses DataLake status view for instant response
    * @requirements 8.9 - GET `/api/stats` to get overview statistics
    */
   async getStats(): Promise<DashboardStats> {
+    // OPTIMIZATION: Try DataLake status view first (instant)
+    if (await this.initializeLake()) {
+      try {
+        const statusView = await this.dataLake.query.getStatus();
+        if (statusView) {
+          return this.statusViewToStats(statusView);
+        }
+      } catch {
+        // Fall through to direct file reading
+      }
+    }
+
+    // Fallback: Compute from raw pattern files
     const patterns = await this.getPatterns();
     const violations = await this.getViolations();
 
@@ -651,6 +757,43 @@ export class DriftDataReader {
         total: Object.keys(byCategory).length,
       },
       lastScan,
+    };
+  }
+
+  /**
+   * Convert StatusView from DataLake to DashboardStats
+   */
+  private statusViewToStats(view: StatusView): DashboardStats {
+    return {
+      healthScore: view.health.score,
+      patterns: {
+        total: view.patterns.total,
+        byStatus: {
+          discovered: view.patterns.discovered,
+          approved: view.patterns.approved,
+          ignored: view.patterns.ignored,
+        },
+        byCategory: view.patterns.byCategory as Record<PatternCategory, number>,
+      },
+      violations: {
+        total: view.issues.critical + view.issues.warnings,
+        bySeverity: {
+          error: view.issues.critical,
+          warning: view.issues.warnings,
+          info: 0,
+          hint: 0,
+        },
+      },
+      files: {
+        // StatusView doesn't track files, estimate from patterns
+        total: 0,
+        scanned: view.lastScan.filesScanned,
+      },
+      detectors: {
+        active: Object.keys(view.patterns.byCategory).length,
+        total: Object.keys(view.patterns.byCategory).length,
+      },
+      lastScan: view.lastScan.timestamp || null,
     };
   }
 
@@ -1651,8 +1794,22 @@ export class DriftDataReader {
 
   /**
    * Get trend summary for pattern regressions and improvements
+   * OPTIMIZED: Uses DataLake trends view for instant response
    */
   async getTrends(period: '7d' | '30d' | '90d' = '7d'): Promise<TrendSummary | null> {
+    // OPTIMIZATION: Try DataLake trends view first
+    if (await this.initializeLake()) {
+      try {
+        const trendsView = await this.dataLake.views.getTrendsView();
+        if (trendsView) {
+          return this.trendsViewToSummary(trendsView, period);
+        }
+      } catch {
+        // Fall through to direct file reading
+      }
+    }
+
+    // Fallback: Read from history snapshots directly
     const historyDir = path.join(this.driftDir, 'history', 'snapshots');
     
     if (!(await fileExists(historyDir))) {
@@ -1694,6 +1851,74 @@ export class DriftDataReader {
 
     // Calculate trends
     return this.calculateTrendSummary(latestSnapshot, comparisonSnapshot, period);
+  }
+
+  /**
+   * Convert TrendsView from DataLake to TrendSummary
+   * TrendsView has: generatedAt, period, overallTrend, healthDelta, regressions, improvements, stableCount, categoryTrends
+   */
+  private trendsViewToSummary(
+    view: TrendsView,
+    period: '7d' | '30d' | '90d'
+  ): TrendSummary {
+    // Calculate date range from period
+    const now = new Date();
+    const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
+    const startDate = new Date(now);
+    startDate.setDate(startDate.getDate() - days);
+
+    // Convert TrendItem[] to PatternTrend[]
+    const regressions: PatternTrend[] = (view.regressions || []).map(r => ({
+      patternId: r.patternId,
+      patternName: r.patternName,
+      category: r.category,
+      type: 'regression' as const,
+      metric: r.metric,
+      previousValue: r.previousValue,
+      currentValue: r.currentValue,
+      change: r.change,
+      changePercent: r.previousValue > 0 ? (r.change / r.previousValue) * 100 : 0,
+      severity: r.severity,
+      firstSeen: view.generatedAt,
+      details: `${r.metric} changed from ${r.previousValue} to ${r.currentValue}`,
+    }));
+
+    const improvements: PatternTrend[] = (view.improvements || []).map(i => ({
+      patternId: i.patternId,
+      patternName: i.patternName,
+      category: i.category,
+      type: 'improvement' as const,
+      metric: i.metric,
+      previousValue: i.previousValue,
+      currentValue: i.currentValue,
+      change: i.change,
+      changePercent: i.previousValue > 0 ? (i.change / i.previousValue) * 100 : 0,
+      severity: i.severity,
+      firstSeen: view.generatedAt,
+      details: `${i.metric} improved from ${i.previousValue} to ${i.currentValue}`,
+    }));
+
+    // Convert CategoryTrend to TrendSummary format
+    const categoryTrends: TrendSummary['categoryTrends'] = {};
+    for (const [category, trend] of Object.entries(view.categoryTrends || {})) {
+      categoryTrends[category] = {
+        trend: trend.trend,
+        avgConfidenceChange: trend.avgConfidenceChange,
+        complianceChange: trend.complianceChange,
+      };
+    }
+
+    return {
+      period,
+      startDate: startDate.toISOString().split('T')[0]!,
+      endDate: now.toISOString().split('T')[0]!,
+      regressions,
+      improvements,
+      stable: view.stableCount || 0,
+      overallTrend: view.overallTrend,
+      healthDelta: view.healthDelta || 0,
+      categoryTrends,
+    };
   }
 
   /**

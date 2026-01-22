@@ -10,6 +10,7 @@ import type {
   MiddlewareInfo,
   MiddlewareRegistration,
   MiddlewareUsage,
+  MiddlewareGroup,
   MiddlewareExtractionResult,
 } from '../types.js';
 
@@ -50,7 +51,7 @@ const GLOBAL_MIDDLEWARE_PATTERN = /protected\s+\$middleware\s*=\s*\[([\s\S]*?)\]
 /**
  * Middleware alias mapping
  */
-const MIDDLEWARE_ALIAS_PATTERN = /['"](\w+)['"]\s*=>\s*([A-Z][\w\\]+)(?:::class)?/g;
+const MIDDLEWARE_ALIAS_PATTERN = /['"](\w+)['"]\s*=>\s*(\\?[A-Za-z][\w\\]*?)::class/g;
 
 /**
  * Middleware in group
@@ -86,6 +87,7 @@ export class MiddlewareExtractor {
   extract(content: string, file: string): MiddlewareExtractionResult {
     const middlewares = this.extractMiddlewares(content, file);
     const registrations = this.extractRegistrations(content, file);
+    const groups = this.extractGroups(content, file);
     const usages = this.extractUsages(content, file);
 
     const confidence = this.calculateConfidence(middlewares, registrations, usages);
@@ -93,6 +95,7 @@ export class MiddlewareExtractor {
     return {
       middlewares,
       registrations,
+      groups,
       usages,
       confidence,
     };
@@ -106,7 +109,9 @@ export class MiddlewareExtractor {
       content.includes('Middleware') ||
       content.includes('$routeMiddleware') ||
       content.includes('$middlewareGroups') ||
-      content.includes('->middleware(')
+      content.includes('->middleware(') ||
+      // Check for handle method signature (middleware pattern)
+      /function\s+handle\s*\([^)]*Request[^)]*\$request[^)]*,\s*[^)]*Closure[^)]*\$next/.test(content)
     );
   }
 
@@ -251,10 +256,14 @@ export class MiddlewareExtractor {
       const line = this.getLineNumber(content, match.index);
 
       const middlewareItems = this.parseMiddlewareList(middlewareStr);
-      for (const item of middlewareItems) {
+      const middlewareNames = middlewareItems.map(item => item.name);
+      
+      // Create a single usage with all middlewares
+      if (middlewareNames.length > 0) {
         usages.push({
-          middleware: item.name,
-          parameters: item.parameters,
+          middleware: middlewareNames[0] || '',
+          middlewares: middlewareNames,
+          parameters: middlewareItems[0]?.parameters || [],
           file,
           line,
         });
@@ -270,6 +279,7 @@ export class MiddlewareExtractor {
 
       usages.push({
         middleware,
+        middlewares: [middleware],
         parameters: params ? params.split(',').map(p => p.trim()) : [],
         file,
         line,
@@ -283,10 +293,13 @@ export class MiddlewareExtractor {
       const line = this.getLineNumber(content, match.index);
 
       const middlewareItems = this.parseMiddlewareList(middlewareStr);
-      for (const item of middlewareItems) {
+      const middlewareNames = middlewareItems.map(item => item.name);
+      
+      if (middlewareNames.length > 0) {
         usages.push({
-          middleware: item.name,
-          parameters: item.parameters,
+          middleware: middlewareNames[0] || '',
+          middlewares: middlewareNames,
+          parameters: middlewareItems[0]?.parameters || [],
           file,
           line,
         });
@@ -294,6 +307,42 @@ export class MiddlewareExtractor {
     }
 
     return usages;
+  }
+
+  /**
+   * Extract middleware groups
+   */
+  private extractGroups(content: string, file: string): MiddlewareGroup[] {
+    const groups: MiddlewareGroup[] = [];
+
+    MIDDLEWARE_GROUPS_PATTERN.lastIndex = 0;
+    let match;
+    while ((match = MIDDLEWARE_GROUPS_PATTERN.exec(content)) !== null) {
+      const groupsContent = match[1] || '';
+      const groupsLine = this.getLineNumber(content, match.index);
+
+      MIDDLEWARE_IN_GROUP_PATTERN.lastIndex = 0;
+      let groupMatch;
+      while ((groupMatch = MIDDLEWARE_IN_GROUP_PATTERN.exec(groupsContent)) !== null) {
+        const groupName = groupMatch[1] || '';
+        const middlewareList = groupMatch[2] || '';
+
+        // Extract each middleware in the group
+        const middlewareItems = middlewareList.match(/([A-Z][\w\\]+)(?:::class)?|['"]([^'"]+)['"]/g) || [];
+        const middlewares = middlewareItems.map(item => 
+          item.replace('::class', '').replace(/['"]/g, '')
+        );
+
+        groups.push({
+          name: groupName,
+          middlewares,
+          file,
+          line: groupsLine + this.getLineNumber(groupsContent.substring(0, groupMatch.index), 0),
+        });
+      }
+    }
+
+    return groups;
   }
 
   /**

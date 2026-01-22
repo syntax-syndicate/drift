@@ -67,9 +67,15 @@ export class GateExtractor {
   extract(content: string, file: string): GateExtractionResult {
     const definitions = this.extractDefinitions(content, file);
     const checks = this.extractChecks(content, file);
-    const hooks = this.extractHooks(content, file);
+    const hooksArray = this.extractHooks(content, file);
 
-    const confidence = this.calculateConfidence(definitions, checks, hooks);
+    // Group hooks by type
+    const hooks = {
+      before: hooksArray.filter(h => h.type === 'before'),
+      after: hooksArray.filter(h => h.type === 'after'),
+    };
+
+    const confidence = this.calculateConfidence(definitions, checks, hooksArray);
 
     return {
       definitions,
@@ -140,6 +146,7 @@ export class GateExtractor {
 
       checks.push({
         method,
+        type: method,
         ability,
         arguments: args,
         file,
@@ -156,6 +163,7 @@ export class GateExtractor {
 
       checks.push({
         method,
+        type: method,
         ability,
         arguments: args,
         file,
@@ -171,6 +179,7 @@ export class GateExtractor {
 
       checks.push({
         method: 'authorize',
+        type: 'authorize',
         ability,
         arguments: args,
         file,
@@ -186,6 +195,7 @@ export class GateExtractor {
 
       checks.push({
         method: 'can',
+        type: 'can',
         ability,
         arguments: args,
         file,
@@ -201,6 +211,7 @@ export class GateExtractor {
 
       checks.push({
         method: 'can',
+        type: 'can',
         ability,
         arguments: args,
         file,

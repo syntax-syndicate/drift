@@ -10,6 +10,7 @@ export { ContractsTab } from './contracts';
 export { BoundariesTab } from './boundaries';
 export { ViolationsTab } from './violations';
 export { FilesTab } from './FilesTab';
+export { GalaxyTab } from './GalaxyTab';
 export { SettingsTab } from './SettingsTab';
 export { ErrorBoundary } from './ErrorBoundary';
 

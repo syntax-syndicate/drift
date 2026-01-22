@@ -34,8 +34,9 @@ describe('LaravelEloquentDetector', () => {
         language: 'php',
       });
 
-      expect(result.custom?.laravelDataAccess).toBeDefined();
-      expect(result.custom?.laravelDataAccess.models.models).toHaveLength(1);
+      expect(result.metadata?.custom?.laravelDataAccess).toBeDefined();
+      const laravelData = result.metadata?.custom?.laravelDataAccess as { models: { models: unknown[] } };
+      expect(laravelData.models.models).toHaveLength(1);
     });
 
     it('should detect query builder usage', async () => {
@@ -67,7 +68,8 @@ describe('LaravelEloquentDetector', () => {
         language: 'php',
       });
 
-      expect(result.custom?.laravelDataAccess.queries).toBeDefined();
+      const laravelData = result.metadata?.custom?.laravelDataAccess as { queries: unknown } | undefined;
+      expect(laravelData?.queries).toBeDefined();
     });
 
     it('should return empty for non-Eloquent code', async () => {

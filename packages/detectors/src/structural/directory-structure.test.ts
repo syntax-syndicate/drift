@@ -58,13 +58,17 @@ describe('isFeatureContainer', () => {
     expect(isFeatureContainer('domains')).toBe(true);
     expect(isFeatureContainer('pages')).toBe(true);
     expect(isFeatureContainer('screens')).toBe(true);
-    expect(isFeatureContainer('components')).toBe(true);
+    // 'components' is now in UNIVERSAL_DIRECTORIES - valid in both architectures
+    expect(isFeatureContainer('apps')).toBe(true);
+    expect(isFeatureContainer('packages')).toBe(true);
   });
 
   it('should not identify non-feature directories', () => {
     expect(isFeatureContainer('auth')).toBe(false);
     expect(isFeatureContainer('services')).toBe(false);
     expect(isFeatureContainer('utils')).toBe(false);
+    // 'components' is universal, not a feature container
+    expect(isFeatureContainer('components')).toBe(false);
   });
 
   it('should be case-insensitive', () => {

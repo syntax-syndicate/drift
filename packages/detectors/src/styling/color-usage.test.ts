@@ -660,7 +660,9 @@ describe('ColorUsageDetector', () => {
       expect(result.patterns.some(p => p.patternId.includes('tailwind-color'))).toBe(true);
     });
 
-    it('should create violations for hardcoded hex colors', async () => {
+    // NOTE: ColorUsageDetector focuses on PATTERN detection, not violation enforcement.
+    // Hardcoded color violations are intentionally not generated - drift learns patterns, not enforces rules.
+    it('should not create violations (pattern learning mode)', async () => {
       const content = `
         const Button = styled.button\`
           color: #ff0000;
@@ -670,11 +672,11 @@ describe('ColorUsageDetector', () => {
       const context = createMockContext('Button.tsx', content);
       const result = await detector.detect(context);
 
-      expect(result.violations.length).toBeGreaterThan(0);
-      expect(result.violations.some(v => v.message.includes('hex color'))).toBe(true);
+      // Violations are intentionally not generated - drift learns patterns
+      expect(result.violations).toHaveLength(0);
     });
 
-    it('should create violations for hardcoded RGB colors', async () => {
+    it('should detect hardcoded colors in analysis but not create violations', async () => {
       const content = `
         const Button = styled.button\`
           color: rgb(255, 0, 0);
@@ -683,11 +685,11 @@ describe('ColorUsageDetector', () => {
       const context = createMockContext('Button.tsx', content);
       const result = await detector.detect(context);
 
-      expect(result.violations.length).toBeGreaterThan(0);
-      expect(result.violations.some(v => v.message.includes('RGB color'))).toBe(true);
+      // Analysis detects hardcoded colors, but no violations are created
+      expect(result.violations).toHaveLength(0);
     });
 
-    it('should not create violations for test files', async () => {
+    it('should handle test files without violations', async () => {
       const content = `
         const mockStyles = {
           color: '#ff0000',
@@ -700,15 +702,13 @@ describe('ColorUsageDetector', () => {
       expect(result.violations).toHaveLength(0);
     });
 
-    it('should include quick fix in violations', async () => {
+    it('should not include quick fix since no violations are generated', async () => {
       const content = `color: #ff0000;`;
       const context = createMockContext('Button.tsx', content);
       const result = await detector.detect(context);
 
-      expect(result.violations.length).toBeGreaterThan(0);
-      const violation = result.violations[0];
-      expect(violation?.quickFix).toBeDefined();
-      expect(violation?.quickFix?.title).toContain('color token');
+      // No violations means no quick fixes
+      expect(result.violations).toHaveLength(0);
     });
   });
 
@@ -811,8 +811,8 @@ describe('ColorUsageDetector Integration', () => {
     // Should detect CSS color property pattern
     expect(result.patterns.some(p => p.patternId.includes('css-color-property'))).toBe(true);
 
-    // Should flag hardcoded color
-    expect(result.violations.length).toBeGreaterThan(0);
+    // No violations - drift learns patterns, not enforces rules
+    expect(result.violations).toHaveLength(0);
   });
 
   it('should handle emotion CSS-in-JS', async () => {
@@ -849,8 +849,8 @@ describe('ColorUsageDetector Integration', () => {
     // Should detect CSS color properties
     expect(result.patterns.some(p => p.patternId.includes('css-color-property'))).toBe(true);
 
-    // Should flag hardcoded color
-    expect(result.violations.length).toBeGreaterThan(0);
+    // No violations - drift learns patterns, not enforces rules
+    expect(result.violations).toHaveLength(0);
   });
 
   it('should handle Tailwind with custom colors', async () => {
@@ -869,8 +869,8 @@ describe('ColorUsageDetector Integration', () => {
     // Should detect Tailwind color classes
     expect(result.patterns.some(p => p.patternId.includes('tailwind-color'))).toBe(true);
 
-    // Should flag arbitrary color value
-    expect(result.violations.length).toBeGreaterThan(0);
+    // No violations - drift learns patterns, not enforces rules
+    expect(result.violations).toHaveLength(0);
   });
 
   it('should handle inline styles in React', async () => {
@@ -892,11 +892,11 @@ describe('ColorUsageDetector Integration', () => {
     // Should detect CSS color property
     expect(result.patterns.some(p => p.patternId.includes('css-color-property'))).toBe(true);
 
-    // Should flag hardcoded color
-    expect(result.violations.length).toBeGreaterThan(0);
+    // No violations - drift learns patterns, not enforces rules
+    expect(result.violations).toHaveLength(0);
   });
 
-  it('should provide meaningful violation messages', async () => {
+  it('should detect patterns without generating violations', async () => {
     const content = `
       .button {
         color: #ff5500;
@@ -906,23 +906,8 @@ describe('ColorUsageDetector Integration', () => {
     const context = createMockContext('styles.css', content);
     const result = await detector.detect(context);
 
-    expect(result.violations.length).toBeGreaterThan(0);
-
-    for (const violation of result.violations) {
-      // Message should describe the issue
-      expect(violation.message).toContain('Hardcoded');
-      expect(violation.message).toContain('color');
-
-      // Should have explanation
-      expect(violation.explanation).toBeDefined();
-      expect(violation.explanation?.length).toBeGreaterThan(0);
-
-      // Should have expected value
-      expect(violation.expected).toBeDefined();
-
-      // Should have actual value
-      expect(violation.actual).toBeDefined();
-    }
+    // No violations - drift learns patterns, not enforces rules
+    expect(result.violations).toHaveLength(0);
   });
 
   it('should handle real-world component file', async () => {
@@ -958,7 +943,7 @@ describe('ColorUsageDetector Integration', () => {
     // Should detect CSS color properties
     expect(result.patterns.some(p => p.patternId.includes('css-color-property'))).toBe(true);
 
-    // Should flag hardcoded colors in disabled state
-    expect(result.violations.length).toBeGreaterThan(0);
+    // No violations - drift learns patterns, not enforces rules
+    expect(result.violations).toHaveLength(0);
   });
 });

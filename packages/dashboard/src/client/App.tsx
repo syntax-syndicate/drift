@@ -4,11 +4,14 @@
  * Main application shell with header, tab navigation, and content area.
  */
 
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { useDashboardStore } from './store';
 import { useWebSocket } from './hooks';
 import { OverviewTab, PatternsTab, ViolationsTab, FilesTab, SettingsTab, ContractsTab } from './components';
 import type { TabId, ConnectionStatus } from './types';
+
+// Lazy load Galaxy tab since it includes heavy Three.js dependencies
+const GalaxyTab = lazy(() => import('./components/GalaxyTab').then(m => ({ default: m.GalaxyTab })));
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'overview', label: 'Overview' },
@@ -16,6 +19,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'contracts', label: 'Contracts' },
   { id: 'violations', label: 'Violations' },
   { id: 'files', label: 'Files' },
+  { id: 'galaxy', label: '🌌 Galaxy' },
   { id: 'settings', label: 'Settings' },
 ];
 
@@ -34,6 +38,15 @@ function ConnectionIndicator({ status }: { status: ConnectionStatus }) {
   );
 }
 
+function GalaxyLoadingFallback() {
+  return (
+    <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] bg-slate-950 rounded-lg">
+      <div className="text-6xl mb-4 animate-pulse">🌌</div>
+      <p className="text-slate-400">Loading Galaxy...</p>
+    </div>
+  );
+}
+
 function TabContent({ tab }: { tab: TabId }) {
   switch (tab) {
     case 'overview':
@@ -46,6 +59,12 @@ function TabContent({ tab }: { tab: TabId }) {
       return <ViolationsTab />;
     case 'files':
       return <FilesTab />;
+    case 'galaxy':
+      return (
+        <Suspense fallback={<GalaxyLoadingFallback />}>
+          <GalaxyTab />
+        </Suspense>
+      );
     case 'settings':
       return <SettingsTab />;
     default:

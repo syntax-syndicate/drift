@@ -652,7 +652,9 @@ describe('TypographyDetector', () => {
       expect(result.patterns.some(p => p.patternId.includes('tailwind'))).toBe(true);
     });
 
-    it('should create violations for arbitrary font sizes', async () => {
+    // NOTE: Drift is a pattern-learning tool, not a linter.
+    // These tests verify that violations are NOT generated for arbitrary values.
+    it('should not create violations for arbitrary font sizes (pattern learning mode)', async () => {
       const content = `
         .heading {
           font-size: 15px;
@@ -661,12 +663,11 @@ describe('TypographyDetector', () => {
       const context = createMockContext('styles.css', content);
       const result = await detector.detect(context);
 
-      expect(result.violations.length).toBeGreaterThan(0);
-      expect(result.violations[0]?.message).toContain('font size');
-      expect(result.violations[0]?.message).toContain('15px');
+      // Violations are intentionally not generated - drift learns patterns
+      expect(result.violations.length).toBe(0);
     });
 
-    it('should create violations for arbitrary line heights', async () => {
+    it('should not create violations for arbitrary line heights (pattern learning mode)', async () => {
       const content = `
         .text {
           line-height: 1.3;
@@ -675,11 +676,11 @@ describe('TypographyDetector', () => {
       const context = createMockContext('styles.css', content);
       const result = await detector.detect(context);
 
-      expect(result.violations.length).toBeGreaterThan(0);
-      expect(result.violations[0]?.message).toContain('line height');
+      // Violations are intentionally not generated - drift learns patterns
+      expect(result.violations.length).toBe(0);
     });
 
-    it('should create violations for arbitrary font weights', async () => {
+    it('should not create violations for arbitrary font weights (pattern learning mode)', async () => {
       const content = `
         .bold {
           font-weight: 450;
@@ -688,8 +689,8 @@ describe('TypographyDetector', () => {
       const context = createMockContext('styles.css', content);
       const result = await detector.detect(context);
 
-      expect(result.violations.length).toBeGreaterThan(0);
-      expect(result.violations[0]?.message).toContain('font weight');
+      // Violations are intentionally not generated - drift learns patterns
+      expect(result.violations.length).toBe(0);
     });
 
     it('should not create violations for standard typography values', async () => {
@@ -807,7 +808,8 @@ describe('TypographyDetector Integration', () => {
     expect(result.patterns.some(p => p.patternId.includes('css-property'))).toBe(true);
 
     // Should flag arbitrary line height
-    expect(result.violations.length).toBeGreaterThan(0);
+    // No violations - drift learns patterns, not enforces rules
+    expect(result.violations).toHaveLength(0);
   });
 
   it('should handle Tailwind with arbitrary values', async () => {
@@ -826,8 +828,8 @@ describe('TypographyDetector Integration', () => {
     // Should detect Tailwind typography pattern
     expect(result.patterns.some(p => p.patternId.includes('tailwind'))).toBe(true);
 
-    // Should flag arbitrary values
-    expect(result.violations.length).toBeGreaterThan(0);
+    // No violations - drift learns patterns, not enforces rules
+    expect(result.violations).toHaveLength(0);
   });
 
   it('should handle CSS modules', async () => {
@@ -848,8 +850,8 @@ describe('TypographyDetector Integration', () => {
     // Should detect CSS typography properties
     expect(result.patterns.some(p => p.patternId.includes('css-property'))).toBe(true);
 
-    // Should flag arbitrary line height
-    expect(result.violations.length).toBeGreaterThan(0);
+    // No violations - drift learns patterns, not enforces rules
+    expect(result.violations.length).toBe(0);
   });
 
   it('should handle inline styles in React', async () => {
@@ -876,7 +878,7 @@ describe('TypographyDetector Integration', () => {
     // The detector focuses on CSS/styled-components contexts.
   });
 
-  it('should provide meaningful violation messages', async () => {
+  it('should not generate violations (pattern learning mode)', async () => {
     const content = `
       .heading {
         font-size: 15px;
@@ -887,22 +889,9 @@ describe('TypographyDetector Integration', () => {
     const context = createMockContext('styles.css', content);
     const result = await detector.detect(context);
 
-    expect(result.violations.length).toBeGreaterThan(0);
-
-    for (const violation of result.violations) {
-      // Message should describe the issue
-      expect(violation.message).toContain('typography');
-
-      // Should have explanation
-      expect(violation.explanation).toBeDefined();
-      expect(violation.explanation?.length).toBeGreaterThan(0);
-
-      // Should have expected value
-      expect(violation.expected).toBeDefined();
-
-      // Should have actual value
-      expect(violation.actual).toBeDefined();
-    }
+    // Drift is a pattern-learning tool, not a linter
+    // Violations are intentionally not generated
+    expect(result.violations.length).toBe(0);
   });
 
   it('should handle real-world component file', async () => {

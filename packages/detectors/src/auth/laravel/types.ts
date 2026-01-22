@@ -46,6 +46,8 @@ export interface GateParameter {
 export interface GateCheck {
   /** Check method (allows, denies, check, authorize, can) */
   method: 'allows' | 'denies' | 'check' | 'authorize' | 'can' | 'cannot';
+  /** Check type (alias for method for backwards compatibility) */
+  type: 'allows' | 'denies' | 'check' | 'authorize' | 'can' | 'cannot';
   /** Ability being checked */
   ability: string;
   /** Arguments passed */
@@ -190,6 +192,8 @@ export interface MiddlewareRegistration {
 export interface MiddlewareUsage {
   /** Middleware name/alias */
   middleware: string;
+  /** All middlewares in this usage (for array usage) */
+  middlewares: string[];
   /** Parameters passed to middleware */
   parameters: string[];
   /** File path */
@@ -245,9 +249,26 @@ export interface GateExtractionResult {
   /** Gate checks */
   checks: GateCheck[];
   /** Gate hooks */
-  hooks: GateHook[];
+  hooks: {
+    before: GateHook[];
+    after: GateHook[];
+  };
   /** Confidence score */
   confidence: number;
+}
+
+/**
+ * Can middleware usage
+ */
+export interface CanMiddleware {
+  /** Ability being checked */
+  ability: string;
+  /** Model parameter */
+  model: string | null;
+  /** File path */
+  file: string;
+  /** Line number */
+  line: number;
 }
 
 /**
@@ -260,6 +281,8 @@ export interface PolicyExtractionResult {
   registrations: PolicyRegistration[];
   /** Authorize calls */
   authorizeCalls: AuthorizeCall[];
+  /** Can middleware usages */
+  canMiddleware: CanMiddleware[];
   /** Confidence score */
   confidence: number;
 }
@@ -279,6 +302,20 @@ export interface AuthorizeCall {
 }
 
 /**
+ * Middleware group definition
+ */
+export interface MiddlewareGroup {
+  /** Group name (web, api, etc.) */
+  name: string;
+  /** Middlewares in this group */
+  middlewares: string[];
+  /** File path */
+  file: string;
+  /** Line number */
+  line: number;
+}
+
+/**
  * Middleware extraction result
  */
 export interface MiddlewareExtractionResult {
@@ -286,6 +323,8 @@ export interface MiddlewareExtractionResult {
   middlewares: MiddlewareInfo[];
   /** Middleware registrations */
   registrations: MiddlewareRegistration[];
+  /** Middleware groups */
+  groups: MiddlewareGroup[];
   /** Middleware usages */
   usages: MiddlewareUsage[];
   /** Confidence score */

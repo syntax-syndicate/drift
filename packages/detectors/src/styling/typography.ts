@@ -1106,10 +1106,12 @@ export class TypographyDetector extends RegexDetector {
       patterns.push(this.createTailwindTypographyPattern(context.file, analysis));
     }
 
-    // Create violations for hardcoded values
-    for (const hardcoded of analysis.hardcodedValues) {
-      violations.push(this.createHardcodedTypographyViolation(hardcoded));
-    }
+    // NOTE: Violations are intentionally not generated.
+    // Drift is a pattern-learning tool, not a linter.
+    // Hardcoded values are detected as patterns, not violations.
+    // for (const hardcoded of analysis.hardcodedValues) {
+    //   violations.push(this.createHardcodedTypographyViolation(hardcoded));
+    // }
 
     return this.createResult(patterns, violations, analysis.typographyTokenConfidence);
   }
@@ -1188,8 +1190,11 @@ export class TypographyDetector extends RegexDetector {
 
   /**
    * Create a violation for a hardcoded typography value
+   * NOTE: This method is currently unused as drift is a pattern-learning tool,
+   * not a linter. Violations are intentionally not generated.
    */
-  private createHardcodedTypographyViolation(hardcoded: HardcodedTypographyInfo): Violation {
+  // @ts-expect-error - Intentionally unused, kept for potential future use
+  private _createHardcodedTypographyViolation(hardcoded: HardcodedTypographyInfo): Violation {
     const typeDescriptions: Record<HardcodedTypographyType, string> = {
       'arbitrary-font-size': 'arbitrary font size',
       'arbitrary-line-height': 'arbitrary line height',
