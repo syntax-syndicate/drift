@@ -6,7 +6,7 @@ Production-ready Agent Skills for building enterprise SaaS applications.
 
 Agent Skills are folders of instructions, scripts, and resources that AI agents (GitHub Copilot, Claude, etc.) can load to perform specialized tasks. They follow the [Agent Skills open standard](https://agentskills.io).
 
-## Available Skills (67)
+## Available Skills (75)
 
 ### 🏗️ Foundations
 | Skill | Description | Time |
@@ -76,6 +76,10 @@ Agent Skills are folders of instructions, scripts, and resources that AI agents 
 | [validation-quarantine](./validation-quarantine/) | Quality scoring and quarantine for suspicious data | ~4h |
 | [geographic-clustering](./geographic-clustering/) | O(n) grid-based clustering with risk scoring | ~5h |
 | [snapshot-aggregation](./snapshot-aggregation/) | Daily compression with merge logic | ~4h |
+| [analytics-pipeline](./analytics-pipeline/) | Redis counters with periodic PostgreSQL flush | ~6h |
+| [community-feed](./community-feed/) | Social feed with trending algorithms and pagination | ~6h |
+| [fuzzy-matching](./fuzzy-matching/) | Multi-stage fuzzy matching for entity reconciliation | ~6h |
+| [scoring-engine](./scoring-engine/) | Statistical scoring with percentiles and decay | ~6h |
 
 ### 💳 Integrations
 | Skill | Description | Time |
@@ -88,6 +92,8 @@ Agent Skills are folders of instructions, scripts, and resources that AI agents 
 | Skill | Description | Time |
 |-------|-------------|------|
 | [prompt-engine](./prompt-engine/) | Template-based prompt building with brand injection | ~5h |
+| [ai-coaching](./ai-coaching/) | Multi-turn conversational AI for intent extraction | ~8h |
+| [provenance-audit](./provenance-audit/) | AI generation audit trails with decision factors | ~8h |
 
 ### 🚀 Performance
 | Skill | Description | Time |
@@ -128,6 +134,8 @@ Agent Skills are folders of instructions, scripts, and resources that AI agents 
 |-------|-------------|------|
 | [design-tokens](./design-tokens/) | WCAG-compliant design token system | ~4h |
 | [pwa-setup](./pwa-setup/) | Progressive Web App configuration | ~2h |
+| [game-loop](./game-loop/) | Fixed timestep game loop with interpolation | ~4h |
+| [mobile-components](./mobile-components/) | Touch-optimized mobile UI components | ~3h |
 
 ### 🚀 Performance
 | Skill | Description | Time |
