@@ -74,4 +74,14 @@ export default defineWorkspace([
       include: ['src/**/*.{test,spec}.ts', 'src/**/*.{test,spec}.tsx', 'tests/**/*.{test,spec}.ts'],
     },
   },
+
+  // MCP package
+  {
+    extends: './vitest.config.ts',
+    test: {
+      name: '@drift/mcp',
+      root: './packages/mcp',
+      include: ['src/**/*.{test,spec}.ts', 'tests/**/*.{test,spec}.ts'],
+    },
+  },
 ]);
