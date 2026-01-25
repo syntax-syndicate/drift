@@ -211,3 +211,12 @@ export {
 // ============================================================================
 
 export * from './aspnet/index.js';
+
+// ============================================================================
+// Constants Pattern Detector
+// ============================================================================
+
+export {
+  ConstantsDetector,
+  createConstantsDetector,
+} from './constants-detector.js';

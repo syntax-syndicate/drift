@@ -1,6 +1,6 @@
 # MCP Tools Reference
 
-Complete reference for all 23 Drift MCP tools.
+Complete reference for all 24 Drift MCP tools.
 
 ## Tool Layers
 
@@ -401,6 +401,61 @@ Error handling pattern analysis.
 | `function` | string | No | Function for analyze |
 | `limit` | number | No | Max results |
 | `minSeverity` | enum | No | `low`, `medium`, `high`, `critical` |
+
+### `drift_constants`
+
+Analyze constants, enums, and exported values. Detects hardcoded secrets, inconsistent values, and magic numbers.
+
+```json
+{
+  "action": "status"
+}
+```
+
+**Actions:**
+
+| Action | Description |
+|--------|-------------|
+| `status` | Overview of constants by category and language |
+| `list` | List constants with filtering |
+| `get` | Get constant details |
+| `usages` | Find references to a constant |
+| `magic` | Find magic values that should be constants |
+| `dead` | Find unused constants |
+| `secrets` | Detect potential hardcoded secrets |
+| `inconsistent` | Find constants with inconsistent values |
+
+**Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `action` | enum | No | Action to perform (default: `status`) |
+| `category` | enum | No | Filter by category: `config`, `api`, `status`, `error`, `feature_flag`, `limit`, `regex`, `path`, `env`, `security`, `uncategorized` |
+| `language` | enum | No | Filter by language: `typescript`, `javascript`, `python`, `java`, `csharp`, `php`, `go` |
+| `file` | string | No | Filter by file path |
+| `search` | string | No | Search constant names |
+| `exported` | boolean | No | Filter by exported status |
+| `id` | string | No | Constant ID for get/usages |
+| `name` | string | No | Constant name for get/usages |
+| `severity` | enum | No | Min severity for secrets: `info`, `low`, `medium`, `high`, `critical` |
+| `limit` | number | No | Max results (default: 20, max: 50) |
+| `cursor` | string | No | Pagination cursor |
+
+**Example - Find hardcoded secrets:**
+```json
+{
+  "action": "secrets",
+  "severity": "high"
+}
+```
+
+**Example - List API constants:**
+```json
+{
+  "action": "list",
+  "category": "api",
+  "language": "typescript"
+}
+```
 
 ---
 

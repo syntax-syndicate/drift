@@ -12,6 +12,7 @@ export { ViolationsTab } from './violations';
 export { FilesTab } from './FilesTab';
 export { GalaxyTab } from './GalaxyTab';
 export { SettingsTab } from './SettingsTab';
+export { ConstantsTab } from './ConstantsTab';
 export { ErrorBoundary } from './ErrorBoundary';
 
 // Pattern sub-components for advanced usage

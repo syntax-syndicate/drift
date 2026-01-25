@@ -1,6 +1,6 @@
 # CLI Reference
 
-Complete reference for all 27 Drift CLI commands.
+Complete reference for all 28 Drift CLI commands.
 
 ## Core Commands
 
@@ -271,6 +271,49 @@ Options:
   --min-confidence <n>   Minimum confidence (0-1)
   --category <cat>       Filter by category
   --include-tests        Include test files
+```
+
+### `drift constants`
+
+Analyze constants, enums, and exported values.
+
+```bash
+drift constants [subcommand] [options]
+
+Subcommands:
+  (default)          Show constants overview
+  list               List all constants
+  get <name>         Show constant details
+  secrets            Show potential hardcoded secrets
+  inconsistent       Show constants with inconsistent values
+  dead               Show potentially unused constants
+  export <output>    Export constants to file
+
+Options:
+  --format <type>    Output format: text, json, csv
+  --category <cat>   Filter by category
+  --language <lang>  Filter by language
+  --file <path>      Filter by file path
+  --search <query>   Search by name
+  --exported         Show only exported constants
+  --severity <level> Min severity for secrets
+  --limit <n>        Limit results
+```
+
+**Examples:**
+
+```bash
+# Show overview
+drift constants
+
+# List API constants
+drift constants list --category api
+
+# Find hardcoded secrets
+drift constants secrets --severity high
+
+# Export to JSON
+drift constants export constants.json
 ```
 
 ### `drift dna`

@@ -39,6 +39,14 @@ export const DRIFT_COMMANDS = {
   // Export commands
   exportPatterns: 'drift.exportPatterns',
   generateReport: 'drift.generateReport',
+
+  // Constants commands
+  showConstants: 'drift.showConstants',
+  showConstantsByCategory: 'drift.showConstantsByCategory',
+  showConstantsByLanguage: 'drift.showConstantsByLanguage',
+  showConstantIssues: 'drift.showConstantIssues',
+  goToConstant: 'drift.goToConstant',
+  findConstantUsages: 'drift.findConstantUsages',
 } as const;
 
 /**
@@ -189,6 +197,46 @@ export const CommandDefinitions: CommandDefinition[] = [
   {
     id: DRIFT_COMMANDS.generateReport,
     title: 'Generate Report',
+    category: 'Drift',
+    enablement: 'drift.connected',
+  },
+
+  // Constants
+  {
+    id: DRIFT_COMMANDS.showConstants,
+    title: 'Show Constants',
+    category: 'Drift',
+    icon: '$(symbol-constant)',
+    enablement: 'drift.connected',
+  },
+  {
+    id: DRIFT_COMMANDS.showConstantsByCategory,
+    title: 'View Constants by Category',
+    category: 'Drift',
+    enablement: 'drift.connected',
+  },
+  {
+    id: DRIFT_COMMANDS.showConstantsByLanguage,
+    title: 'View Constants by Language',
+    category: 'Drift',
+    enablement: 'drift.connected',
+  },
+  {
+    id: DRIFT_COMMANDS.showConstantIssues,
+    title: 'View Constant Issues',
+    category: 'Drift',
+    icon: '$(warning)',
+    enablement: 'drift.connected',
+  },
+  {
+    id: DRIFT_COMMANDS.goToConstant,
+    title: 'Go to Constant Definition',
+    category: 'Drift',
+    enablement: 'drift.connected',
+  },
+  {
+    id: DRIFT_COMMANDS.findConstantUsages,
+    title: 'Find Constant Usages',
     category: 'Drift',
     enablement: 'drift.connected',
   },
