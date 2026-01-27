@@ -1,6 +1,6 @@
 {
   "name": "@drift/ai",
-  "version": "0.9.25",
+  "version": "0.9.27",
   "private": true,
   "description": "AI integration module for Drift",
   "type": "module",
@@ -27,7 +27,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "driftdetect-core": "workspace:*"
+    "driftdetect-core": "^0.9.26"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
