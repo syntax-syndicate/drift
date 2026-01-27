@@ -217,6 +217,39 @@ drift check --staged --fail-on error
 }
 ```
 
+### Tool Filtering (Intelligent Defaults)
+
+By default, Drift automatically detects your project's languages and only exposes relevant MCP tools. A TypeScript project won't see Go, Rust, C++, PHP, or Java tools — reducing AI context overhead from 49 tools to ~35.
+
+**How it works:**
+1. On MCP server startup, Drift scans for language markers (package.json, Cargo.toml, go.mod, etc.)
+2. Only language-specific tools for detected languages are exposed
+3. Core tools (patterns, status, context, etc.) are always available
+
+**Override detection:**
+
+```json
+{
+  "mcp": {
+    "tools": {
+      "languages": ["typescript", "python"],
+      "include": ["drift_go"],
+      "exclude": ["drift_wpf"],
+      "all": false
+    }
+  }
+}
+```
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `languages` | array | Override detected languages |
+| `include` | array | Additional tools to include |
+| `exclude` | array | Tools to exclude |
+| `all` | boolean | Set `true` to disable filtering (expose all 49 tools) |
+
+**Supported languages:** typescript, javascript, python, java, php, go, rust, cpp, csharp, wpf
+
 ---
 
 ## Sensitive Data Configuration
