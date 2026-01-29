@@ -42,7 +42,7 @@
   ],
   "license": "Apache-2.0",
   "devDependencies": {
-    "@napi-rs/cli": "^2.18.0"
+    "@napi-rs/cli": "^3.0.0-alpha.62"
   },
   "scripts": {
     "build": "napi build --platform --release",
