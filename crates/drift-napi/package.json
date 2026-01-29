@@ -1,6 +1,6 @@
 {
   "name": "driftdetect-native",
-  "version": "0.9.31",
+  "version": "0.9.32",
   "description": "Native Rust core for Drift - high-performance code analysis",
   "main": "index.js",
   "types": "index.d.ts",
@@ -26,7 +26,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/AgenDrift/drift.git",
+    "url": "https://github.com/dadbodgeoff/drift.git",
     "directory": "crates/drift-napi"
   },
   "keywords": [
@@ -38,7 +38,7 @@
     "rust",
     "napi"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "devDependencies": {
     "@napi-rs/cli": "^2.18.0"
   },
@@ -48,14 +48,5 @@
     "prepublishOnly": "napi prepublish -t npm",
     "artifacts": "napi artifacts",
     "version": "napi version"
-  },
-  "optionalDependencies": {
-    "driftdetect-native-win32-x64-msvc": "0.9.31",
-    "driftdetect-native-darwin-x64": "0.9.31",
-    "driftdetect-native-linux-x64-gnu": "0.9.31",
-    "driftdetect-native-darwin-arm64": "0.9.31",
-    "driftdetect-native-linux-arm64-gnu": "0.9.31",
-    "driftdetect-native-linux-arm64-musl": "0.9.31",
-    "driftdetect-native-linux-x64-musl": "0.9.31"
   }
 }
