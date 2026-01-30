@@ -122,6 +122,15 @@ pub struct PropertyInfo {
     pub is_static: bool,
     pub is_readonly: bool,
     pub visibility: Visibility,
+    /// Struct tags (for Go struct field tags like `json:"name"`)
+    pub tags: Option<Vec<StructTag>>,
+}
+
+/// Struct tag (for Go struct field tags)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StructTag {
+    pub key: String,
+    pub value: String,
 }
 
 /// Visibility modifier

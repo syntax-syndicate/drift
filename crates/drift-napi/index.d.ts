@@ -63,6 +63,7 @@ export interface JsClassInfo {
   isExported: boolean
   startLine: number
   endLine: number
+  decorators: Array<string>
 }
 /** Import info exposed to JavaScript */
 export interface JsImportInfo {

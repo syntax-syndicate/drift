@@ -98,6 +98,26 @@ pub struct JsClassInfo {
     pub is_exported: bool,
     pub start_line: i64,
     pub end_line: i64,
+    pub decorators: Vec<String>,
+    pub properties: Vec<JsPropertyInfo>,
+}
+
+/// Property info exposed to JavaScript (for struct fields, class properties)
+#[napi(object)]
+pub struct JsPropertyInfo {
+    pub name: String,
+    pub type_annotation: Option<String>,
+    pub is_static: bool,
+    pub is_readonly: bool,
+    pub visibility: String,
+    pub tags: Option<Vec<JsStructTag>>,
+}
+
+/// Struct tag exposed to JavaScript (for Go struct field tags)
+#[napi(object)]
+pub struct JsStructTag {
+    pub key: String,
+    pub value: String,
 }
 
 /// Import info exposed to JavaScript
@@ -212,6 +232,22 @@ pub fn parse(source: String, file_path: String) -> Result<Option<JsParseResult>>
                 is_exported: c.is_exported,
                 start_line: c.range.start.line as i64,
                 end_line: c.range.end.line as i64,
+                decorators: c.decorators,
+                properties: c.properties.into_iter().map(|p| JsPropertyInfo {
+                    name: p.name,
+                    type_annotation: p.type_annotation,
+                    is_static: p.is_static,
+                    is_readonly: p.is_readonly,
+                    visibility: match p.visibility {
+                        drift_core::parsers::Visibility::Public => "public".to_string(),
+                        drift_core::parsers::Visibility::Private => "private".to_string(),
+                        drift_core::parsers::Visibility::Protected => "protected".to_string(),
+                    },
+                    tags: p.tags.map(|tags| tags.into_iter().map(|t| JsStructTag {
+                        key: t.key,
+                        value: t.value,
+                    }).collect()),
+                }).collect(),
             }).collect(),
             imports: result.imports.into_iter().map(|i| JsImportInfo {
                 source: i.source,
