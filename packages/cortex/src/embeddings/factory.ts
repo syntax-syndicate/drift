@@ -102,7 +102,7 @@ export async function autoDetectEmbeddingProvider(): Promise<IEmbeddingProvider>
   }
 
   // 3. Fall back to local
-  console.log('Using local (Transformers.js) embedding provider');
+  console.error('Using local (Transformers.js) embedding provider');
   const provider = new LocalEmbeddingProvider();
   await provider.initialize();
   return provider;
