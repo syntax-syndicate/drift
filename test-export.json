@@ -1,0 +1,145 @@
+{
+  "exportedAt": "2026-01-31T18:52:39.588Z",
+  "version": "1.0.0",
+  "count": 6,
+  "memories": [
+    {
+      "type": "tribal",
+      "topic": "Learned correction",
+      "knowledge": "Original: Used MD5 for hashing user passwords\nCorrection: MD5 is cryptographically broken. Use bcrypt with cost factor 12 for password hashing.",
+      "severity": "warning",
+      "source": {
+        "type": "manual"
+      },
+      "summary": "Learned: MD5 is cryptographically broken. Use bcrypt with c...",
+      "confidence": 0.8,
+      "importance": "normal",
+      "createdAt": "2026-01-31T18:52:13.840Z",
+      "updatedAt": "2026-01-31T18:52:13.840Z",
+      "accessCount": 0,
+      "transactionTime": {
+        "recordedAt": "2026-01-31T18:52:13.840Z"
+      },
+      "validTime": {
+        "validFrom": "2026-01-31T18:52:13.840Z"
+      },
+      "id": "mem_ml2o5e34_e5e8701a5f0b"
+    },
+    {
+      "type": "code_smell",
+      "confidence": 1,
+      "importance": "normal",
+      "summary": "Avoid using 'any' type in TypeScript - always use proper typing or generics",
+      "name": "TypeScript",
+      "description": "Avoid using 'any' type in TypeScript - always use proper typing or generics",
+      "reason": "Avoid using 'any' type in TypeScript - always use proper typing or generics",
+      "suggestion": "Review and fix",
+      "severity": "warning",
+      "autoDetect": false,
+      "createdAt": "2026-01-31T18:49:00.715Z",
+      "updatedAt": "2026-01-31T18:49:00.715Z",
+      "accessCount": 0,
+      "transactionTime": {
+        "recordedAt": "2026-01-31T18:49:00.715Z"
+      },
+      "validTime": {
+        "validFrom": "2026-01-31T18:49:00.715Z"
+      },
+      "id": "mem_ml2o192j_1aee81d770ce"
+    },
+    {
+      "type": "procedural",
+      "confidence": 1,
+      "importance": "normal",
+      "summary": "Deploy process: 1) Run all tests 2) Build production bundle 3) Push to main 4) Wait for CI 5) Ver...",
+      "name": "Deployment",
+      "description": "Deploy process: 1) Run all tests 2) Build production bundle 3) Push to main 4) Wait for CI 5) Verify staging",
+      "triggers": [
+        "Deployment"
+      ],
+      "steps": [
+        {
+          "order": 1,
+          "action": "Deploy process: 1) Run all tests 2) Build production bundle 3) Push to main 4) Wait for CI 5) Verify staging"
+        }
+      ],
+      "usageCount": 0,
+      "createdAt": "2026-01-31T18:48:54.084Z",
+      "updatedAt": "2026-01-31T18:48:54.084Z",
+      "accessCount": 0,
+      "transactionTime": {
+        "recordedAt": "2026-01-31T18:48:54.084Z"
+      },
+      "validTime": {
+        "validFrom": "2026-01-31T18:48:54.084Z"
+      },
+      "id": "mem_ml2o13yc_3b91376c1ffc"
+    },
+    {
+      "type": "tribal",
+      "confidence": 1,
+      "importance": "high",
+      "summary": "Services should never call controllers directly - use dependency injection",
+      "topic": "Architecture",
+      "knowledge": "Services should never call controllers directly - use dependency injection",
+      "severity": "warning",
+      "source": {
+        "type": "manual"
+      },
+      "createdAt": "2026-01-31T18:48:46.659Z",
+      "updatedAt": "2026-01-31T18:48:46.659Z",
+      "accessCount": 0,
+      "transactionTime": {
+        "recordedAt": "2026-01-31T18:48:46.659Z"
+      },
+      "validTime": {
+        "validFrom": "2026-01-31T18:48:46.659Z"
+      },
+      "id": "mem_ml2o0y83_737a74a3494c"
+    },
+    {
+      "type": "tribal",
+      "confidence": 1,
+      "importance": "critical",
+      "summary": "Always use bcrypt for password hashing, never MD5 or SHA1",
+      "topic": "Security",
+      "knowledge": "Always use bcrypt for password hashing, never MD5 or SHA1",
+      "severity": "warning",
+      "source": {
+        "type": "manual"
+      },
+      "createdAt": "2026-01-31T18:48:39.853Z",
+      "updatedAt": "2026-01-31T18:48:39.853Z",
+      "accessCount": 0,
+      "transactionTime": {
+        "recordedAt": "2026-01-31T18:48:39.853Z"
+      },
+      "validTime": {
+        "validFrom": "2026-01-31T18:48:39.853Z"
+      },
+      "id": "mem_ml2o0sz2_11357e544b0f"
+    },
+    {
+      "type": "tribal",
+      "confidence": 1,
+      "importance": "high",
+      "summary": "Always use bcrypt for password hashing",
+      "topic": "Security",
+      "knowledge": "Always use bcrypt for password hashing",
+      "severity": "warning",
+      "source": {
+        "type": "manual"
+      },
+      "createdAt": "2026-01-31T18:33:29.224Z",
+      "updatedAt": "2026-01-31T18:33:29.224Z",
+      "accessCount": 0,
+      "transactionTime": {
+        "recordedAt": "2026-01-31T18:33:29.224Z"
+      },
+      "validTime": {
+        "validFrom": "2026-01-31T18:33:29.224Z"
+      },
+      "id": "mem_ml2nhabt_ce64868e0531"
+    }
+  ]
+}

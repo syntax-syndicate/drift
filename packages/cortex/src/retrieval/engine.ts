@@ -179,11 +179,22 @@ export class RetrievalEngine {
   private async searchByTopic(topic: string): Promise<Memory[]> {
     try {
       const embedding = await this.embeddings.embed(topic);
-      return this.storage.similaritySearch(embedding, 20);
+      const results = await this.storage.similaritySearch(embedding, 20);
+      if (results.length > 0) {
+        return results;
+      }
     } catch {
-      // Fallback to type-based search if embeddings fail
-      return this.storage.search({ limit: 20 });
+      // Similarity search failed
     }
+    
+    // Fallback to text-based search
+    const allMemories = await this.storage.search({ limit: 100 });
+    const topicLower = topic.toLowerCase();
+    
+    return allMemories.filter(m => {
+      const searchText = `${m.summary} ${m.type} ${(m as any).knowledge ?? ''} ${(m as any).topic ?? ''}`.toLowerCase();
+      return searchText.includes(topicLower);
+    }).slice(0, 20);
   }
 
   /**
