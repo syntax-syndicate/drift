@@ -21,26 +21,31 @@ COPY packages/core/package.json packages/core/tsconfig.json ./packages/core/
 COPY packages/mcp/package.json packages/mcp/tsconfig.json ./packages/mcp/
 COPY packages/detectors/package.json packages/detectors/tsconfig.json ./packages/detectors/
 COPY packages/cli/package.json packages/cli/tsconfig.json ./packages/cli/
+COPY packages/cortex/package.json packages/cortex/tsconfig.json ./packages/cortex/
 
 # Create minimal workspace config for just the packages we need
-RUN echo 'packages:\n  - "packages/core"\n  - "packages/detectors"\n  - "packages/mcp"\n  - "packages/cli"' > pnpm-workspace.yaml
+RUN echo 'packages:\n  - "packages/core"\n  - "packages/detectors"\n  - "packages/mcp"\n  - "packages/cli"\n  - "packages/cortex"' > pnpm-workspace.yaml
 
-# Install all dependencies
-RUN pnpm install --frozen-lockfile
+# Install all dependencies (not using --frozen-lockfile to handle lockfile drift)
+RUN pnpm install
 
 # Copy source code
 COPY packages/core/src ./packages/core/src
 COPY packages/mcp/src ./packages/mcp/src
 COPY packages/detectors/src ./packages/detectors/src
 COPY packages/cli/src ./packages/cli/src
+COPY packages/cortex/src ./packages/cortex/src
 
-# Build core first (other packages depend on it)
-RUN cd packages/core && pnpm build
-
-# Build detectors (depends on core)
+# Build detectors first (core and mcp depend on it)
 RUN cd packages/detectors && pnpm build
 
-# Build mcp (depends on core and detectors)
+# Build core (depends on detectors)
+RUN cd packages/core && pnpm build
+
+# Build cortex
+RUN cd packages/cortex && pnpm build
+
+# Build mcp (depends on core, detectors, and cortex)
 RUN cd packages/mcp && pnpm build
 
 # Prune dev dependencies after build
@@ -73,16 +78,19 @@ COPY --from=builder /app/packages/mcp/node_modules ./packages/mcp/node_modules
 COPY --from=builder /app/packages/detectors/package.json ./packages/detectors/
 COPY --from=builder /app/packages/detectors/dist ./packages/detectors/dist
 COPY --from=builder /app/packages/detectors/node_modules ./packages/detectors/node_modules
+COPY --from=builder /app/packages/cortex/package.json ./packages/cortex/
+COPY --from=builder /app/packages/cortex/dist ./packages/cortex/dist
+COPY --from=builder /app/packages/cortex/node_modules ./packages/cortex/node_modules
 
 # Create directory for mounting projects
-RUN mkdir -p /project && chown drift:drift /project
+RUN mkdir -p /workspace && chown drift:drift /workspace
 
 # Switch to non-root user
 USER drift
 
 # Environment variables with defaults
 ENV PORT=3000 \
-    PROJECT_ROOT=/project \
+    PROJECT_ROOT=/workspace \
     ENABLE_CACHE=true \
     ENABLE_RATE_LIMIT=true \
     VERBOSE=false \
@@ -96,4 +104,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD node -e "fetch('http://localhost:${PORT}/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"
 
 # Run the HTTP server
-CMD ["node", "packages/mcp/dist/bin/http-server.js"]
+CMD ["node", "packages/mcp/dist/bin/http-server.js", "--verbose"]
